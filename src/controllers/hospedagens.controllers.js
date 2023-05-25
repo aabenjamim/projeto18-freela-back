@@ -1,30 +1,26 @@
-//adicionar hospedagens
+import { buscaComodidade, verificaCidade, verificaEstado, 
+    buscaHospedagem, cadastraHospedagem, insereComodHosped, 
+    insereComodidade, insereImagens } from "../repositories/hospedagem.repository.js"
 
+//adicionar hospedagens
 export async function postHospedagens(req, res){
-    const {nome, diaria, descricao, cidade, estado, imagens, imgPrincipal} = req.body
+    const {nome, diaria, descricao, cidade, 
+        estado, imagens, imgPrincipal, comodidades} = req.body
 
     try{
-        //verificar o estado
-        const buscaEstado = await db.query(`
-            SELECT * FROM estado WHERE nome = $1
-        `, [estado])
-        if(buscaEstado.rows.length===0){
-            return res.status(404).send('Nome de estado inválido!')
+        const resultEstado = await verificaEstado(estado)
+        if(resultEstado.rowCount===0){
+            await insereEstado(estado)   
         }
 
-        //verifica a cidade
-        const buscaCidade = await db.query(`
-            SELECT * FROM destino WHERE nome = $1 AND "idEstado"=$2
-        `, [cidade, buscaEstado.rows[0].id])
-        if(buscaCidade.rows.length===0){
-            return res.status(404).send('Nome de cidade inválida')
+        const resultDestino = await verificaCidade(cidade, 'destino', resultEstado.rows[0].id)
+        if(resultDestino.rowCount===0){
+            await insereCidade(cidade, 'destino', resultEstado.rows[0].id)
         }
 
         //inserir no banco
-        const idHospedagem = await db.query(`
-        INSERT INTO estado (nome, diaria, descricao, "idCidade")
-            VALUES ($1, $2, $3, $4) RETURNING id
-        `, [nome, diaria, descricao, buscaCidade.rows[0].id])
+        const idHospedagem = await cadastraHospedagem(
+            nome, diaria, descricao, buscaCidade.rows[0].id)
 
         function convertDriveLink(link) {
             const fileId = extractFileId(link)
@@ -43,21 +39,35 @@ export async function postHospedagens(req, res){
             return null
           }
 
-    // Inserir imagens
-    for (let i = 0; i < imagens.length; i++) {
-        const convertedLink = convertDriveLink(imagens[i]);
-        await db.query('INSERT INTO imagem (url, "idHospedagem") VALUES ($1, $2)', [
-          convertedLink,
-          idHospedagem.rows[0].id,
-        ])
-      }
-  
-      // Inserir imagem principal
-      const convertedPrincipal = convertDriveLink(imgPrincipal);
-      await db.query(
-        'INSERT INTO imagem (url, "idHospedagem", principal) VALUES ($1, $2, true)',
-        [convertedPrincipal, idHospedagem.rows[0].id]
-      )
+          const idHospedagemFormat = idHospedagem.rows[0].id
+
+        // Inserir imagens
+        for (let i = 0; i < imagens.length; i++) {
+            const convertedLink = convertDriveLink(imagens[i]);
+            await insereImagens(convertedLink, idHospedagemFormat, false)
+        }
+    
+        // Inserir imagem principal
+        const convertedPrincipal = convertDriveLink(imgPrincipal);
+        await insereImagens(convertedPrincipal, idHospedagemFormat, true)
+
+        // Inserir comodidades
+        let comodidadeId
+        for (let i = 0; i < comodidades.length; i++) {
+            const comodidade = comodidades[i]
+
+            const resultComodidade = await buscaComodidade(comodidade)
+    
+            if (resultComodidade.rowCount > 0) {
+                comodidadeId = buscaComodidade.rows[0].id
+            } else {
+                const novaComodidade = await insereComodidade(comodidade)
+                comodidadeId = novaComodidade.rows[0].id
+            }
+        }
+
+        // Relacionar a comodidade com a hospedagem
+        await insereComodHosped(comodidadeId, idHospedagem.rows[0].id)
 
         res.status(201).send("Hospedagem inserida com sucesso!")
     } catch(err){
@@ -67,5 +77,12 @@ export async function postHospedagens(req, res){
 
 //listar hospedagens
 export async function getHospedagens(req, res){
-    
+    try{
+        const hospedagem = await buscaHospedagem
+
+        res.status(201).send(hospedagem.rows)
+    } catch(err){
+        res.status(500).send(err.message)
+    }
 }
+
