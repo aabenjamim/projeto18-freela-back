@@ -1,6 +1,6 @@
 import { Router } from "express"
-import hospedagemRouter from "./hospedagem.routes"
-import passagemRouter from "./passagem.routes"
+import hospedagemRouter from "./hospedagem.routes.js"
+import passagemRouter from "./passagem.routes.js"
 
 const router = Router()
 

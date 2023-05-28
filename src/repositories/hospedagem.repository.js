@@ -1,3 +1,4 @@
+import {db} from '../database/database.connection.js'
 
 export async function verificaEstado(estado){
     return db.query(`
@@ -13,14 +14,16 @@ export async function verificaCidade(cidade, tipo, estado){
 
 export async function insereEstado(estado){
     return db.query(`
-        INSERT INTO estado (nome) VALUES nome = $1
+        INSERT INTO estado (nome) VALUES ($1)
+        RETURNING id;
     `, [estado])
 }
 
 export async function insereCidade(cidade, tipo, estado){
     return db.query(`
     INSERT INTO ${tipo} (nome, "idEstado") VALUES
-         nome = $1 AND "idEstado"=$2
+        ($1, $2)
+    RETURNING id;
     `, [cidade, estado])
 }
 
