@@ -76,13 +76,15 @@ export async function postHospedagens(req, res){
 }
 
 //listar hospedagens
-export async function getHospedagens(req, res){
-    try{
-        const hospedagem = await buscaHospedagem
-
-        res.status(201).send(hospedagem.rows)
-    } catch(err){
-        res.status(500).send(err.message)
+export async function getHospedagens(req, res) {
+    try {
+      const { estado, cidade, valorMaximo } = req.query
+  
+      const hospedagem = await buscaHospedagem(estado, cidade, valorMaximo);
+  
+      res.status(201).send(hospedagem.rows);
+    } catch (err) {
+      res.status(500).send(err.message);
     }
-}
+  }
 
