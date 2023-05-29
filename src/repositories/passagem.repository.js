@@ -12,8 +12,6 @@ export async function verificaCompanhia(companhia){
     `, [companhia])
 }
 
-
-
 export async function buscaIdCidade(cidade, tipo, estado){
     return db.query(`
     SELECT id FROM ${tipo} WHERE nome = $1 AND "idEstado"=$2
@@ -26,16 +24,16 @@ export async function insereCompanhia(nome) {
       VALUES ($1)
       RETURNING id;
     `, [nome]);
-  }
+}
   
 
-  export async function inserePassagem(idOrigem, idDestino, partida, chegada, preco, idCompanhia) {
+export async function inserePassagem(idOrigem, idDestino, partida, chegada, preco, idCompanhia) {
     return db.query(`
       INSERT INTO passagem ("idOrigem", "idDestino", partida, chegada, preco, "idCompanhia")
       VALUES ($1, $2, $3, $4, $5, $6)
       RETURNING id;
     `, [idOrigem, idDestino, partida, chegada, preco, idCompanhia]);
-  }
+}
   
 
 export async function buscaPassagem(){
