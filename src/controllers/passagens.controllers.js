@@ -109,13 +109,6 @@ export async function getPassagem(req, res){
 
     const queryParams = [];
 
-    // Verificar e adicionar os critérios de busca na consulta
-    if (estadoOrigem) {
-      queryParams.push(estadoOrigem);
-    }
-    if (estadoDestino) {
-      queryParams.push(estadoDestino);
-    }
     if (cidadeOrigem) {
       queryParams.push(cidadeOrigem);
     }
