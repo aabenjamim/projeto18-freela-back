@@ -67,7 +67,22 @@ export async function postHospedagens(req, res){
         }
 
         // Relacionar a comodidade com a hospedagem
-        await insereComodHosped(comodidadeId, idHospedagem.rows[0].id)
+        const comodidadesIds = [];
+
+        for (let i = 0; i < comodidades.length; i++) {
+        const comodidade = comodidades[i];
+        const resultComodidade = await buscaComodidade(comodidade);
+
+        if (resultComodidade.rowCount > 0) {
+            comodidadesIds.push(resultComodidade.rows[0].id);
+        } else {
+            const novaComodidade = await insereComodidade(comodidade);
+            comodidadesIds.push(novaComodidade.rows[0].id);
+        }
+        }
+
+        await insereComodHosped(comodidadesIds, idHospedagem.rows[0].id);
+
 
         res.status(201).send("Hospedagem inserida com sucesso!")
     } catch(err){
@@ -86,5 +101,4 @@ export async function getHospedagens(req, res) {
     } catch (err) {
       res.status(500).send(err.message);
     }
-  }
-
+}

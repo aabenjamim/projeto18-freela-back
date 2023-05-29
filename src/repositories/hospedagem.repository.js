@@ -51,12 +51,14 @@ export async function insereComodidade(comodidade){
     `, [comodidade])
 }
 
-export async function insereComodHosped(comodidade, hospedagem){
+export async function insereComodHosped(comodidades, hospedagem) {
+    const values = comodidades.map(comodidade => `(${comodidade}, ${hospedagem})`).join(',');
     return db.query(`
-    INSERT INTO comod_hosped ("idComodidade", "idHospedagem") VALUES ($1, $2)
-    `, [comodidade, hospedagem])
-}
-
+      INSERT INTO comod_hosped ("idComodidade", "idHospedagem")
+      VALUES ${values}
+    `);
+  }
+  
 export async function buscaHospedagem(estado, cidade, valorMaximo) {
     let query = `
       SELECT 
@@ -96,4 +98,3 @@ export async function buscaHospedagem(estado, cidade, valorMaximo) {
   
     return db.query(query, params);
   }
-  
