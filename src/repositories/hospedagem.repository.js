@@ -51,11 +51,14 @@ export async function insereComodidade(comodidade){
     `, [comodidade])
 }
 
-export async function insereComodHosped(comodidade, hospedagem){
+export async function insereComodHosped(comodidades, hospedagem) {
+    const values = comodidades.map(comodidade => `(${comodidade}, ${hospedagem})`).join(',');
     return db.query(`
-    INSERT INTO comod_hosped ("idComodidade", "idHospedagem") VALUES ($1, $2)
-    `, [comodidade, hospedagem])
-}
+      INSERT INTO comod_hosped ("idComodidade", "idHospedagem")
+      VALUES ${values}
+    `);
+  }
+  
 
 export async function buscaHospedagem(){
     return db.query(`
@@ -64,21 +67,24 @@ export async function buscaHospedagem(){
     h.diaria AS diaria, 
     h.descricao AS descricao, 
     d.nome AS cidade,
+    e.nome AS estado,
     ip.url AS "imgPrincipal",
-    array_agg(i.url) AS imagens,
-    array_agg(c.nome) AS comodidades
-    FROM
+    array_agg(DISTINCT i.url) AS imagens,
+    array_agg(DISTINCT co.nome) AS comodidades
+  FROM
     hospedagem AS h
     JOIN destino AS d ON h."idCidade" = d.id
+    JOIN estado AS e ON d."idEstado" = e.id
     LEFT JOIN imagem AS ip ON h.id = ip."idHospedagem" AND ip.principal = true
     LEFT JOIN imagem AS i ON h.id = i."idHospedagem" AND i.principal = false
     LEFT JOIN comod_hosped AS ch ON h.id = ch."idHospedagem"
-    LEFT JOIN comodidade AS c ON ch."idComodidade" = c.id
-    GROUP BY
+    LEFT JOIN comodidade AS co ON ch."idComodidade" = co.id
+  GROUP BY
     h.nome,
     h.diaria,
     h.descricao,
     d.nome,
-    ip.url;      
+    e.nome,
+    ip.url;
     `)
 }
