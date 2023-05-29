@@ -29,7 +29,7 @@ export async function insereCidade(cidade, tipo, estado){
 
 export async function cadastraHospedagem(nome, diaria, descricao, cidade){
     return db.query(`
-    INSERT INTO estado (nome, diaria, descricao, "idCidade")
+    INSERT INTO hospedagem (nome, diaria, descricao, "idCidade")
         VALUES ($1, $2, $3, $4) RETURNING id
     `, [nome, diaria, descricao, cidade])
 }

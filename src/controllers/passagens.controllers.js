@@ -127,7 +127,6 @@ export async function getPassagem(req, res){
 
     const result = await db.query(query, queryParams);
 
-    // Construir o objeto de resposta
     const passagens = result.rows.map((row) => ({
       id: row.id,
       origem: row.origem,

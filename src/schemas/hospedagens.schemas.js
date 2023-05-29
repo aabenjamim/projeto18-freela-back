@@ -7,5 +7,6 @@ export const hospedagemSchema = joi.object({
     cidade: joi.string().required(), 
     estado: joi.string().required(), 
     imagens: joi.array().items(joi.string().uri()).required(), 
-    imgPrincipal: joi.string().uri().required()
+    imgPrincipal: joi.string().uri().required(),
+    comodidades: joi.array().items(joi.string()).required()
 })

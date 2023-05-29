@@ -8,19 +8,19 @@ export async function postHospedagens(req, res){
         estado, imagens, imgPrincipal, comodidades} = req.body
 
     try{
-        const resultEstado = await verificaEstado(estado)
+        let resultEstado = await verificaEstado(estado)
         if(resultEstado.rowCount===0){
-            await insereEstado(estado)   
+           resultEstado = await insereEstado(estado)   
         }
 
-        const resultDestino = await verificaCidade(cidade, 'destino', resultEstado.rows[0].id)
+        let resultDestino = await verificaCidade(cidade, 'destino', resultEstado.rows[0].id)
         if(resultDestino.rowCount===0){
-            await insereCidade(cidade, 'destino', resultEstado.rows[0].id)
+           resultDestino = await insereCidade(cidade, 'destino', resultEstado.rows[0].id)
         }
 
         //inserir no banco
         const idHospedagem = await cadastraHospedagem(
-            nome, diaria, descricao, buscaCidade.rows[0].id)
+            nome, diaria, descricao, resultDestino.rows[0].id)
 
         function convertDriveLink(link) {
             const fileId = extractFileId(link)
