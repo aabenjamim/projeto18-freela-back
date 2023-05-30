@@ -1,6 +1,6 @@
 import { buscaComodidade, verificaCidade, verificaEstado, 
     buscaHospedagem, cadastraHospedagem, insereComodHosped, 
-    insereComodidade, insereImagens } from "../repositories/hospedagem.repository.js"
+    insereComodidade, insereImagens, buscaHospedagemById } from "../repositories/hospedagem.repository.js"
 
 //adicionar hospedagens
 export async function postHospedagens(req, res){
@@ -102,3 +102,30 @@ export async function getHospedagens(req, res) {
       res.status(500).send(err.message);
     }
 }
+
+export async function getHospedagemById(req, res) {
+    const { id } = req.params;
+
+    try {
+      const hospedagem = await buscaHospedagemById(id);
+  
+      if (!hospedagem) {
+        return res.status(404).send('Hospedagem não encontrada');
+      }
+  
+      const hospedagemObj = {
+        nome: hospedagem.nome,
+        diaria: hospedagem.diaria,
+        descricao: hospedagem.descricao,
+        cidade: hospedagem.cidade,
+        estado: hospedagem.estado,
+        imgPrincipal: hospedagem.imgPrincipal,
+        imagens: hospedagem.imagens.filter((imagem, index, self) => self.indexOf(imagem) === index),
+        comodidades: hospedagem.comodidades.filter((comodidade, index, self) => self.indexOf(comodidade) === index)
+      };
+  
+      res.status(200).send(hospedagemObj);
+    } catch (err) {
+      res.status(500).send(err.message);
+    }
+  }
