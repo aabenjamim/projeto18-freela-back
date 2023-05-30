@@ -85,13 +85,21 @@ export async function postPassagem(req, res) {
 }
 
 
-export async function getPassagem(req, res){
-  const { estadoOrigem, estadoDestino, cidadeOrigem,
-    cidadeDestino, dia, mes, ano, valorMaximo} = req.query;
+export async function getPassagem(req, res) {
+  const {
+    estadoOrigem,
+    estadoDestino,
+    cidadeOrigem,
+    cidadeDestino,
+    dia,
+    mes,
+    ano,
+    valorMaximo
+  } = req.query;
 
   try {
     let query = `
-      SELECT 
+      SELECT
         p.id,
         o.nome AS origem,
         d.nome AS destino,
@@ -101,27 +109,28 @@ export async function getPassagem(req, res){
         c.nome AS companhia
       FROM
         passagem AS p
-      INNER JOIN origem AS o ON p."idOrigem" = (SELECT id FROM origem WHERE nome = $1)
-      INNER JOIN destino AS d ON p."idDestino" = (SELECT id FROM destino WHERE nome = $2)
+      INNER JOIN origem AS o ON p."idOrigem" = o.id
+      INNER JOIN destino AS d ON p."idDestino" = d.id
       INNER JOIN companhia AS c ON p."idCompanhia" = c.id
-      WHERE 1 = 1
     `;
 
     const queryParams = [];
 
     if (cidadeOrigem) {
+      query += ' WHERE LOWER(o.nome) = LOWER($1)';
       queryParams.push(cidadeOrigem);
     }
     if (cidadeDestino) {
+      query += ` ${cidadeOrigem ? 'AND' : 'WHERE'} LOWER(d.nome) = LOWER($${queryParams.length + 1})`;
       queryParams.push(cidadeDestino);
     }
     if (dia && mes && ano) {
       const data = new Date(ano, mes - 1, dia);
-      query += ' AND p.partida::date = $3';
+      query += ` ${cidadeOrigem || cidadeDestino ? 'AND' : 'WHERE'} p.partida::date = $${queryParams.length + 1}`;
       queryParams.push(data);
     }
     if (valorMaximo) {
-      query += ' AND p.preco <= $4';
+      query += ` ${cidadeOrigem || cidadeDestino || (dia && mes && ano) ? 'AND' : 'WHERE'} p.preco <= $${queryParams.length + 1}`;
       queryParams.push(valorMaximo);
     }
 
@@ -132,9 +141,9 @@ export async function getPassagem(req, res){
       origem: row.origem,
       destino: row.destino,
       dataPartida: row.partida.toISOString().slice(0, 10),
-      horarioPartida: row.partida.toISOString().slice(11, 16), 
+      horarioPartida: row.partida.toISOString().slice(11, 16),
       dataChegada: row.chegada.toISOString().slice(0, 10),
-      horarioChegada: row.chegada.toISOString().slice(11, 16), 
+      horarioChegada: row.chegada.toISOString().slice(11, 16),
       preco: row.preco,
       companhia: row.companhia,
     }));
